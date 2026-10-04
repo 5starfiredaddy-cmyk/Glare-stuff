@@ -1,0 +1,24 @@
+[
+  {
+    "Author": "5starfiredaddy-cmyk",
+    "Name": "Glare Counter",
+    "InternalName": "GlareCounter",
+    "AssemblyVersion": "1.0.0.0",
+    "TestingAssemblyVersion": "1.0.0.0",
+    "Punchline": "Counts how many Glares you cast.",
+    "Description": "Tracks Glare casts per pull, per duty, and lifetime, including Swiftcast Glares.",
+    "ApplicableVersion": "any",
+    "RepoUrl": "https://github.com/5starfiredaddy-cmyk/Glare-stuff",
+    "Tags": ["WHM", "counter", "glare"],
+    "CommandName": "/glare",
+    "DalamudApiLevel": 15,
+    "LoadPriority": 0,
+    "IsHide": false,
+    "IsTestingExclusive": false,
+    "DownloadCount": 0,
+    "LastUpdate": 1791145318,
+    "DownloadLinkInstall": "https://github.com/5starfiredaddy-cmyk/Glare-stuff/releases/latest/download/latest.zip",
+    "DownloadLinkTesting": "https://github.com/5starfiredaddy-cmyk/Glare-stuff/releases/latest/download/latest.zip",
+    "DownloadLinkUpdate": "https://github.com/5starfiredaddy-cmyk/Glare-stuff/releases/latest/download/latest.zip"
+  }
+]
