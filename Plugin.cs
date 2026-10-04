@@ -109,7 +109,7 @@ public sealed unsafe class Plugin : IDalamudPlugin
             ToggleWindow();
     }
 
-    private void OnTerritoryChanged(ushort territory)
+    private void OnTerritoryChanged(uint territory)
     {
         PullCount = 0;
         DutyCount = 0;
