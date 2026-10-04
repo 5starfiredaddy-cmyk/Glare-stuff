@@ -1,0 +1,8 @@
+{
+  "Author": "You",
+  "Name": "Glare Counter",
+  "InternalName": "GlareCounter",
+  "Punchline": "How many times did you Glare?",
+  "Description": "Counts completed Glare, Glare III and Glare IV casts per pull, per duty and lifetime. Use /glare to toggle the window.",
+  "Tags": ["whm", "counter", "utility"]
+}
