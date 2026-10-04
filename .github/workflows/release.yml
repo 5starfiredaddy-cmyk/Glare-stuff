@@ -43,7 +43,7 @@ jobs:
       - name: Build
         run: dotnet build --no-restore -c Release -p:Version=${{ steps.version.outputs.version }}
 
-      - name: Locate plugin package
+       - name: Locate plugin package
         id: package
         run: |
           ZIP=$(find . -path "*/${PLUGIN_NAME}/latest.zip" | head -n 1)
@@ -52,14 +52,11 @@ jobs:
             find . -path ./.git -prune -o -path "*/bin/*" -type f -print
             exit 1
           fi
-          echo "Found $ZIP"
-          cp "$ZIP" "${PLUGIN_NAME}-${GITHUB_REF_NAME}.zip"
-          echo "zip=${PLUGIN_NAME}-${GITHUB_REF_NAME}.zip" >> "$GITHUB_OUTPUT"
+          echo "zip=$ZIP" >> "$GITHUB_OUTPUT"
 
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           name: ${{ env.PLUGIN_NAME }} ${{ github.ref_name }}
           generate_release_notes: true
-          files: |
-            ${{ steps.package.outputs.zip }}
+          files: ${{ steps.package.outputs.zip }}
