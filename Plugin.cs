@@ -141,9 +141,21 @@ public sealed unsafe class Plugin : IDalamudPlugin
         ActionManager* self, ActionType actionType, uint actionId, ulong targetId,
         uint extraParam, ActionManager.UseActionMode mode, uint comboRouteId, bool* outOptAreaTargeted)
     {
-        var swift = actionType == ActionType.Action && GlareIds.Contains(actionId) && HasSwiftcast();
+        // The hotbar can pass the base action (e.g. Stone) instead of Glare, so check both.
+        var isGlare = false;
+        if (actionType == ActionType.Action)
+        {
+            var adjusted = self->GetAdjustedActionId(actionId);
+            isGlare = GlareIds.Contains(actionId) || GlareIds.Contains(adjusted);
+        }
+
+        // Must be checked BEFORE calling the original, since Swiftcast is consumed by the cast.
+        var swift = isGlare && HasSwiftcast();
 
         var result = useActionHook.Original(self, actionType, actionId, targetId, extraParam, mode, comboRouteId, outOptAreaTargeted);
+
+        if (isGlare)
+            Log.Information($"[GlareCounter] UseAction glare id={actionId} swift={swift} result={result} mode={mode}");
 
         if (result && swift)
         {
