@@ -5,6 +5,7 @@ using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.Command;
 using Dalamud.Hooking;
 using Dalamud.Interface.Textures;
+using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.Interface.Windowing;
 using Dalamud.IoC;
 using Dalamud.Plugin;
@@ -47,6 +48,7 @@ public sealed unsafe class Plugin : IDalamudPlugin
     public long LifetimeCount => config.LifetimeTotal;
 
     private bool wasInCombat;
+    private bool pullEnded; // true once combat has ended; next Glare starts a fresh pull
     private uint pendingId;
     private float pendingProgress;
     private float pendingTotal;
@@ -129,10 +131,19 @@ public sealed unsafe class Plugin : IDalamudPlugin
         PullCount = 0;
         DutyCount = 0;
         pendingId = 0;
+        pullEnded = false;
     }
 
     private void Register()
     {
+        // First Glare after the last fight ended belongs to the NEW pull
+        // (covers an opener that lands before the InCombat flag flips).
+        if (pullEnded)
+        {
+            PullCount = 0;
+            pullEnded = false;
+        }
+
         PullCount++;
         DutyCount++;
         config.LifetimeTotal++;
@@ -190,7 +201,18 @@ public sealed unsafe class Plugin : IDalamudPlugin
         // New pull = entering combat.
         var inCombat = Condition[ConditionFlag.InCombat];
         if (inCombat && !wasInCombat)
-            PullCount = 0;
+        {
+            // Only reset if no Glare was already counted for this pull.
+            if (pullEnded)
+            {
+                PullCount = 0;
+                pullEnded = false;
+            }
+        }
+        else if (!inCombat && wasInCombat)
+        {
+            pullEnded = true;
+        }
         wasInCombat = inCombat;
 
         var player = ObjectTable.LocalPlayer;
