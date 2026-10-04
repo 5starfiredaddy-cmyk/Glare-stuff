@@ -1,7 +1,11 @@
-<Project Sdk="Dalamud.NET.Sdk/14.0.1">
-  <PropertyGroup>
-    <Version>1.1.0.0</Version>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <Description>Counts completed Glare casts per pull, per duty, and lifetime.</Description>
-  </PropertyGroup>
-</Project>
+{
+  "Author": "5starfiredaddy-cmyk",
+  "Name": "Glare Counter",
+  "InternalName": "GlareCounter",
+  "Punchline": "Counts how many Glares you cast.",
+  "Description": "Tracks Glare casts per pull, per duty, and lifetime, including Swiftcast Glares.",
+  "ApplicableVersion": "any",
+  "Tags": ["WHM", "counter"],
+  "CommandName": "/glare",
+  "RepoUrl": "https://github.com/5starfiredaddy-cmyk/Glare-stuff"
+}
