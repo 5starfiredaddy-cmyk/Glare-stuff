@@ -4,6 +4,7 @@ using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.Command;
 using Dalamud.Hooking;
+using Dalamud.Interface.Textures;
 using Dalamud.Interface.Windowing;
 using Dalamud.IoC;
 using Dalamud.Plugin;
@@ -34,6 +35,8 @@ public sealed unsafe class Plugin : IDalamudPlugin
     [PluginService] private static ICondition Condition { get; set; } = null!;
     [PluginService] private static IGameInteropProvider GameInterop { get; set; } = null!;
     [PluginService] private static IPluginLog Log { get; set; } = null!;
+    [PluginService] private static ITextureProvider TextureProvider { get; set; } = null!;
+    [PluginService] private static IDataManager DataManager { get; set; } = null!;
 
     private readonly Configuration config;
     private readonly WindowSystem windows = new("GlareCounter");
@@ -65,6 +68,7 @@ public sealed unsafe class Plugin : IDalamudPlugin
 
         PluginInterface.UiBuilder.Draw += windows.Draw;
         PluginInterface.UiBuilder.OpenMainUi += ToggleWindow;
+        PluginInterface.UiBuilder.OpenConfigUi += ToggleWindow;
         Framework.Update += OnUpdate;
         ClientState.TerritoryChanged += OnTerritoryChanged;
 
@@ -80,6 +84,7 @@ public sealed unsafe class Plugin : IDalamudPlugin
         ClientState.TerritoryChanged -= OnTerritoryChanged;
         PluginInterface.UiBuilder.Draw -= windows.Draw;
         PluginInterface.UiBuilder.OpenMainUi -= ToggleWindow;
+        PluginInterface.UiBuilder.OpenConfigUi -= ToggleWindow;
         CommandManager.RemoveHandler(Command);
 
         config.ShowWindow = window.IsOpen;
@@ -100,6 +105,16 @@ public sealed unsafe class Plugin : IDalamudPlugin
     }
 
     private void ToggleWindow() => window.IsOpen = !window.IsOpen;
+
+    private uint? glareIconId;
+
+    // Looks up Glare III's icon from the game's Action sheet and returns its texture.
+    public IDalamudTextureWrap? GetGlareIcon()
+    {
+        glareIconId ??= DataManager.GetExcelSheet<Lumina.Excel.Sheets.Action>()?.GetRowOrDefault(25859)?.Icon ?? 0;
+        if (glareIconId == 0) return null;
+        return TextureProvider.GetFromGameIcon(new GameIconLookup(glareIconId.Value)).GetWrapOrDefault();
+    }
 
     private void OnCommand(string command, string args)
     {
@@ -214,15 +229,24 @@ public sealed class MainWindow : Window
     public MainWindow(Plugin plugin) : base("Glare Counter###GlareCounterMain")
     {
         this.plugin = plugin;
-        Size = new Vector2(200, 130);
+        Size = new Vector2(230, 150);
         SizeCondition = ImGuiCond.FirstUseEver;
     }
 
     public override void Draw()
     {
+        var icon = plugin.GetGlareIcon();
+        if (icon != null)
+        {
+            ImGui.Image(icon.Handle, new Vector2(40, 40));
+            ImGui.SameLine();
+        }
+
+        ImGui.BeginGroup();
         ImGui.TextUnformatted($"This pull:  {plugin.PullCount}");
         ImGui.TextUnformatted($"This duty:  {plugin.DutyCount}");
         ImGui.TextUnformatted($"Lifetime:   {plugin.LifetimeCount}");
+        ImGui.EndGroup();
         ImGui.Spacing();
         if (ImGui.Button("Reset pull/duty"))
             plugin.ResetCurrent();
