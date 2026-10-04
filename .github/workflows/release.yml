@@ -1,73 +1,47 @@
-name: Create Release
-
-on:
-  push:
-    tags:
-      - 'v*'
-
-permissions:
-  contents: write
-
-jobs:
-  release:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '10.0.x'
-
-      - name: Download Dalamud
+- name: Find and Stage Zip File
         run: |
-          mkdir -p "$HOME/dalamud"
-          curl -L -o /tmp/latest.zip https://goatcorp.github.io/dalamud-distrib/latest.zip
-          unzip -q /tmp/latest.zip -d "$HOME/dalamud"
-          echo "DALAMUD_HOME=$HOME/dalamud" >> "$GITHUB_ENV"
-
-      - name: Work out version
-        run: |
-          VER="${GITHUB_REF_NAME#v}"
-          # Dalamud wants a 4-part version (1.2.3 -> 1.2.3.0)
-          if [ "$(echo "$VER" | tr -cd '.' | wc -c)" -eq 2 ]; then
-            VER="$VER.0"
-          fi
-          echo "VERSION=$VER" >> "$GITHUB_ENV"
-
-      - name: Build
-        run: |
-          dotnet restore
-          dotnet build --no-restore -c Release -p:Version=$VERSION -p:AssemblyVersion=$VERSION -p:FileVersion=$VERSION
-
-      - name: Find plugin zip
-        run: |
-          ZIP=$(find . -path '*/bin/Release/*' -name latest.zip | head -n 1)
+          # Find any generated zip file in Release folder
+          ZIP=$(find . -path '*/bin/Release/*' -name '*.zip' | head -n 1)
           if [ -z "$ZIP" ]; then
-            echo "latest.zip not found. Did DalamudPackager run?"
+            echo "No zip file found in Release output directory."
             exit 1
           fi
-          echo "Found $ZIP"
+          echo "Found zip at $ZIP"
+          
+          # Create a 'latest' directory and copy the release zip there
+          mkdir -p latest
+          cp "$ZIP" latest/latest.zip
+          
+          # Set env vars for GitHub Release step
           echo "PLUGIN_ZIP=$ZIP" >> "$GITHUB_ENV"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           name: Glare Counter ${{ env.VERSION }}
-          files: ${{ env.PLUGIN_ZIP }}
+          files: |
+            ${{ env.PLUGIN_ZIP }}
+            latest/latest.zip
           generate_release_notes: true
 
       - name: Update repo.json
         run: |
-          git fetch origin main
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          
+          # Checkout main cleanly from remote
+          git fetch origin main:main
           git checkout main
+
+          # Update JSON
           jq --arg v "$VERSION" --argjson t "$(date +%s)" \
             '.[0].AssemblyVersion = $v | .[0].TestingAssemblyVersion = $v | .[0].LastUpdate = $t' \
             repo.json > repo.tmp
           mv repo.tmp repo.json
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          # Commit & push to main branch
           git add repo.json
-          git diff --cached --quiet || git commit -m "Update repo.json for $VERSION"
-          git push origin main
+          if ! git diff --cached --quiet; then
+            git commit -m "Update repo.json for $VERSION"
+            git push origin main
+          fi
