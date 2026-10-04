@@ -1,8 +1,7 @@
-{
-  "Author": "You",
-  "Name": "Glare Counter",
-  "InternalName": "GlareCounter",
-  "Punchline": "How many times did you Glare?",
-  "Description": "Counts completed Glare, Glare III and Glare IV casts per pull, per duty and lifetime. Use /glare to toggle the window.",
-  "Tags": ["whm", "counter", "utility"]
-}
+<Project Sdk="Dalamud.NET.Sdk/15.0.0">
+  <PropertyGroup>
+    <Version>1.1.0.0</Version>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Description>Counts completed Glare casts per pull, per duty, and lifetime.</Description>
+  </PropertyGroup>
+</Project>
