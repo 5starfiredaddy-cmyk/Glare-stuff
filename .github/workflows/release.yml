@@ -46,10 +46,13 @@ jobs:
       - name: Locate plugin package
         id: package
         run: |
-          ZIP=$(find . -path "*/Release/${PLUGIN_NAME}/latest.zip" | head -n 1)
+          ZIP=$(find . -path "*/${PLUGIN_NAME}/latest.zip" | head -n 1)
           if [ -z "$ZIP" ]; then
-            echo "latest.zip not found"; exit 1
+            echo "latest.zip not found. Build output:"
+            find . -path ./.git -prune -o -path "*/bin/*" -type f -print
+            exit 1
           fi
+          echo "Found $ZIP"
           cp "$ZIP" "${PLUGIN_NAME}-${GITHUB_REF_NAME}.zip"
           echo "zip=${PLUGIN_NAME}-${GITHUB_REF_NAME}.zip" >> "$GITHUB_OUTPUT"
 
